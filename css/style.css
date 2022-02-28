@@ -96,7 +96,7 @@ body {
   background-color: #ededed;
   transition: background-color ease 0.3s;
 }
-#lotto-number-toggle[data-state=on]::before {
+#lotto-number-toggle.open::before {
   background-color: #80deea;
 }
 #lotto-number-toggle::after {
@@ -111,7 +111,7 @@ body {
   height: 100%;
   transition: transform ease 0.3s, background-color ease 0.3s;
 }
-#lotto-number-toggle[data-state=on]::after {
+#lotto-number-toggle.open::after {
   background-color: #00bcd4;
   transform: translateX(100%);
 }
@@ -131,10 +131,10 @@ body {
   display: none;
   font-size: 1rem;
 }
-.lotto-item-container[data-list=open] > .item {
+.lotto-item-container.open > .item {
   grid-column: 8 span;
 }
-.lotto-item-container[data-list=open] > .item .item-number {
+.lotto-item-container.open > .item .item-number {
   display: block;
 }
 
@@ -145,25 +145,34 @@ body {
 
 .winning-number-container {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  margin-top: 0.5rem;
 }
 
-.winning-number-input-container {
+.winning-number-inputs-wrapper {
   display: flex;
   justify-content: space-between;
-}
-.winning-number-input-container .winning-number-inputs-container {
-  display: flex;
   gap: 0.5rem;
+  margin-top: 0.6rem;
 }
-.winning-number-input-container .winning-number-input {
+
+.winning-number-input {
   width: 2.2rem;
   height: 2.2rem;
   text-align: center;
 }
 
+.bonus-number-wrapper {
+  text-align: right;
+}
+
+.bonus-number-input-wrapper {
+  margin-top: 0.6rem;
+}
+
 #show-result-button {
   margin-top: 1.2rem;
+  width: 100%;
 }
 
 /*# sourceMappingURL=style.css.map*/
