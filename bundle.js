@@ -328,8 +328,10 @@ var Lotto = /*#__PURE__*/function () {
   _createClass(Lotto, [{
     key: "generate",
     value: function generate() {
-      var shuffledList = shuffle(_toConsumableArray(Array(_constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.MAX_RANDOM_NUMBER)).map(function (_, idx) {
-        return idx + _constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.MIN_RANDOM_NUMBER;
+      var MAX = _constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.MAX_RANDOM_NUMBER,
+          MIN = _constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.MIN_RANDOM_NUMBER;
+      var shuffledList = shuffle(_toConsumableArray(Array(MAX - MIN + 1)).map(function (_, idx) {
+        return idx + MIN;
       }));
       this._lottoNumbers = shuffledList.slice(0, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.LOTTO_NUMBER_LENGTH);
       return this;
@@ -1072,8 +1074,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _utils_element_manager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/element-manager */ "./src/js/utils/element-manager.js");
 /* harmony import */ var _constants_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants/selector */ "./src/js/constants/selector.js");
-/* harmony import */ var _constants_setting__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../constants/setting */ "./src/js/constants/setting.js");
-/* harmony import */ var _InputView__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./InputView */ "./src/js/views/InputView.js");
+/* harmony import */ var _InputView__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./InputView */ "./src/js/views/InputView.js");
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -1114,7 +1115,6 @@ function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.
 
 
 
-
 var _moneyInputSection = /*#__PURE__*/new WeakMap();
 
 var MoneyInputView = /*#__PURE__*/function (_InputView) {
@@ -1136,14 +1136,14 @@ var MoneyInputView = /*#__PURE__*/function (_InputView) {
 
     _classPrivateFieldSet(_assertThisInitialized(_this), _moneyInputSection, $element);
 
-    _this.moneyInputHandler();
+    _this.bindMoneyKeydown();
 
     return _this;
   }
 
   _createClass(MoneyInputView, [{
-    key: "moneyInputHandler",
-    value: function moneyInputHandler() {
+    key: "bindMoneyKeydown",
+    value: function bindMoneyKeydown() {
       _classPrivateFieldGet(this, _moneyInputSection).addEventListener('keydown', this.preventNonDigitInput.bind(this));
     }
   }, {
@@ -1174,7 +1174,7 @@ var MoneyInputView = /*#__PURE__*/function (_InputView) {
   }]);
 
   return MoneyInputView;
-}(_InputView__WEBPACK_IMPORTED_MODULE_3__["default"]);
+}(_InputView__WEBPACK_IMPORTED_MODULE_2__["default"]);
 
 
 
