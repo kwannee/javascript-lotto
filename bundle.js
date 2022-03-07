@@ -288,6 +288,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ Lotto)
 /* harmony export */ });
+/* harmony import */ var _constants_setting__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants/setting */ "./src/js/constants/setting.js");
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -308,6 +309,8 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+
+
 function shuffle(list) {
   list.sort(function () {
     return Math.random() - 0.5;
@@ -325,10 +328,10 @@ var Lotto = /*#__PURE__*/function () {
   _createClass(Lotto, [{
     key: "generate",
     value: function generate() {
-      var shuffledList = shuffle(_toConsumableArray(Array(45)).map(function (_, idx) {
-        return idx + 1;
+      var shuffledList = shuffle(_toConsumableArray(Array(_constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.MAX_RANDOM_NUMBER)).map(function (_, idx) {
+        return idx + _constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.MIN_RANDOM_NUMBER;
       }));
-      this._lottoNumbers = shuffledList.slice(0, 6);
+      this._lottoNumbers = shuffledList.slice(0, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.LOTTO_NUMBER_LENGTH);
       return this;
     }
   }, {
