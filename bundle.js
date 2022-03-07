@@ -49,9 +49,10 @@ var SELECTOR = Object.freeze({
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "LOTTO_SETTING": () => (/* binding */ LOTTO_SETTING),
-/* harmony export */   "winningCountsInit": () => (/* binding */ winningCountsInit),
-/* harmony export */   "prizeMoney": () => (/* binding */ prizeMoney),
-/* harmony export */   "winningLottoInit": () => (/* binding */ winningLottoInit)
+/* harmony export */   "INITIAL_WINNING_COUNTS": () => (/* binding */ INITIAL_WINNING_COUNTS),
+/* harmony export */   "PRIZE_MONEY": () => (/* binding */ PRIZE_MONEY),
+/* harmony export */   "INITIAL_WINNING_LOTTO": () => (/* binding */ INITIAL_WINNING_LOTTO),
+/* harmony export */   "KEYCODE": () => (/* binding */ KEYCODE)
 /* harmony export */ });
 var LOTTO_SETTING = {
   MIN_RANDOM_NUMBER: 1,
@@ -59,23 +60,30 @@ var LOTTO_SETTING = {
   PRICE: 1000,
   LOTTO_NUMBER_LENGTH: 6
 };
-var winningCountsInit = {
+var INITIAL_WINNING_COUNTS = {
   '1th': 0,
   '2th': 0,
   '3th': 0,
   '4th': 0,
   '5th': 0
 };
-var prizeMoney = {
+var PRIZE_MONEY = {
   '1th': 2000000000,
   '2th': 30000000,
   '3th': 1500000,
   '4th': 50000,
   '5th': 5000
 };
-var winningLottoInit = {
+var INITIAL_WINNING_LOTTO = {
   winningNumbers: [],
   bonusNumber: null
+};
+var KEYCODE = {
+  ZERO: 48,
+  NINE: 57,
+  BACKSPACE: 8,
+  TAB: 9,
+  ENTER: 13
 };
 
 /***/ }),
@@ -94,7 +102,10 @@ __webpack_require__.r(__webpack_exports__);
 
 var ERROR_MESSAGE = {
   NOT_POSITIVE_NUMBER_INPUT: '0 이상의 숫자만 입력할 수 있습니다.',
-  WRONG_LOTTO_PRICE_UNIT_INPUT: "\uB85C\uB610 \uAE08\uC561\uC740 ".concat(_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.PRICE, "\uC6D0 \uB2E8\uC704\uB85C \uC785\uB825\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.")
+  WRONG_LOTTO_PRICE_UNIT_INPUT: "\uB85C\uB610 \uAE08\uC561\uC740 ".concat(_setting__WEBPACK_IMPORTED_MODULE_0__.LOTTO_SETTING.PRICE, "\uC6D0 \uB2E8\uC704\uB85C \uC785\uB825\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."),
+  HAS_EMPTY_INPUT: '빈 입력이 있습니다.',
+  HAS_DUPLICATED_NUMBER: '중복된 입력이 있습니다.',
+  WRONG_LOTTO_NUMBER: '올바른 로또 번호 입력이 아닙니다.'
 };
 
 /***/ }),
@@ -179,7 +190,7 @@ var LottoController = /*#__PURE__*/function () {
 
     _classPrivateFieldInitSpec(this, _ResultModalView, {
       writable: true,
-      value: new _views_ResultModalView__WEBPACK_IMPORTED_MODULE_8__["default"]((0,_utils_element_manager__WEBPACK_IMPORTED_MODULE_4__.$)('.modal'))
+      value: new _views_ResultModalView__WEBPACK_IMPORTED_MODULE_8__["default"]((0,_utils_element_manager__WEBPACK_IMPORTED_MODULE_4__.$)(".".concat(_constants_selector__WEBPACK_IMPORTED_MODULE_5__.SELECTOR.CLASS.MODAL)))
     });
 
     _classPrivateFieldInitSpec(this, _LottosModel, {
@@ -214,7 +225,7 @@ var LottoController = /*#__PURE__*/function () {
 
         _classPrivateFieldGet(this, _MoneyInputView).disableNewMoneySubmit();
 
-        _classPrivateFieldGet(this, _LottosModel).chargedMoney = money;
+        _classPrivateFieldGet(this, _LottosModel).addMoney(money);
 
         _classPrivateFieldGet(this, _LottosModel).buy(money);
 
@@ -234,14 +245,11 @@ var LottoController = /*#__PURE__*/function () {
           bonusNumber = _ref2.bonusNumber;
 
       try {
-        (0,_utils_Lotto_validator__WEBPACK_IMPORTED_MODULE_6__.checkValidWinningNumberInput)(winningNumbers.concat(bonusNumber).filter(function (number) {
-          return number;
-        }));
         var winningLotto = new _models_WinningLotto__WEBPACK_IMPORTED_MODULE_9__["default"]().generate(winningNumbers, bonusNumber);
 
         _classPrivateFieldGet(this, _WinningLottoCounter).setWinningLotto(winningLotto);
 
-        _classPrivateFieldGet(this, _WinningLottoCounter).calculateWinningCounts(_classPrivateFieldGet(this, _LottosModel).lottos);
+        _classPrivateFieldGet(this, _WinningLottoCounter).calculateWinningCounts(_classPrivateFieldGet(this, _LottosModel).lottoNumbers);
 
         _classPrivateFieldGet(this, _ResultModalView).showResultModal();
 
@@ -280,7 +288,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ Lotto)
 /* harmony export */ });
-/* harmony import */ var _utils_Lotto_validator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/Lotto/validator */ "./src/js/utils/Lotto/validator.js");
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -299,17 +306,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
-
-
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function shuffle(list) {
   list.sort(function () {
@@ -318,49 +315,26 @@ function shuffle(list) {
   return list;
 }
 
-var _pickedNumbers = /*#__PURE__*/new WeakMap();
-
 var Lotto = /*#__PURE__*/function () {
   function Lotto() {
     _classCallCheck(this, Lotto);
 
-    _classPrivateFieldInitSpec(this, _pickedNumbers, {
-      writable: true,
-      value: new Set()
-    });
+    _defineProperty(this, "_lottoNumbers", []);
   }
 
   _createClass(Lotto, [{
-    key: "pushNumberIntoPickedNumbers",
-    value: function pushNumberIntoPickedNumbers(number) {
-      try {
-        (0,_utils_Lotto_validator__WEBPACK_IMPORTED_MODULE_0__.checkValidLottoNumberInput)({
-          input: number,
-          pickedNumbers: _classPrivateFieldGet(this, _pickedNumbers)
-        });
-      } catch (err) {
-        return;
-      }
-
-      _classPrivateFieldGet(this, _pickedNumbers).add(number);
-    }
-  }, {
     key: "generate",
     value: function generate() {
-      var _this = this;
-
       var shuffledList = shuffle(_toConsumableArray(Array(45)).map(function (_, idx) {
         return idx + 1;
-      }).sort());
-      shuffledList.slice(0, 6).forEach(function (number) {
-        return _this.pushNumberIntoPickedNumbers(number);
-      });
+      }));
+      this._lottoNumbers = shuffledList.slice(0, 6);
       return this;
     }
   }, {
-    key: "pickedNumbers",
+    key: "lottoNumbers",
     get: function get() {
-      return _classPrivateFieldGet(this, _pickedNumbers);
+      return this._lottoNumbers;
     }
   }]);
 
@@ -441,8 +415,10 @@ var LottosModel = /*#__PURE__*/function () {
     key: "chargedMoney",
     get: function get() {
       return _classPrivateFieldGet(this, _chargedMoney);
-    },
-    set: function set(money) {
+    }
+  }, {
+    key: "addMoney",
+    value: function addMoney(money) {
       _classPrivateFieldSet(this, _chargedMoney, _classPrivateFieldGet(this, _chargedMoney) + money);
     }
   }, {
@@ -458,14 +434,14 @@ var LottosModel = /*#__PURE__*/function () {
     key: "list",
     get: function get() {
       return _classPrivateFieldGet(this, _lottos).map(function (value) {
-        return Array.from(value.pickedNumbers).join(', ');
+        return Array.from(value.lottoNumbers).join(', ');
       });
     }
   }, {
-    key: "lottos",
+    key: "lottoNumbers",
     get: function get() {
       return _classPrivateFieldGet(this, _lottos).map(function (lotto) {
-        return lotto.pickedNumbers;
+        return lotto.lottoNumbers;
       });
     }
   }, {
@@ -495,6 +471,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* binding */ WinningLotto)
 /* harmony export */ });
 /* harmony import */ var _utils_Lotto_validator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/Lotto/validator */ "./src/js/utils/Lotto/validator.js");
+/* harmony import */ var _Lotto__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Lotto */ "./src/js/models/Lotto.js");
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -513,6 +492,20 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
@@ -529,31 +522,34 @@ function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { 
 
 
 
-var _winningNumbers = /*#__PURE__*/new WeakMap();
 
 var _bonusNumber = /*#__PURE__*/new WeakMap();
 
-var WinningLotto = /*#__PURE__*/function () {
+var WinningLotto = /*#__PURE__*/function (_Lotto) {
+  _inherits(WinningLotto, _Lotto);
+
+  var _super = _createSuper(WinningLotto);
+
   function WinningLotto() {
+    var _this;
+
     _classCallCheck(this, WinningLotto);
 
-    _classPrivateFieldInitSpec(this, _winningNumbers, {
-      writable: true,
-      value: []
-    });
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
 
-    _classPrivateFieldInitSpec(this, _bonusNumber, {
+    _this = _super.call.apply(_super, [this].concat(args));
+
+    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _bonusNumber, {
       writable: true,
       value: null
     });
+
+    return _this;
   }
 
   _createClass(WinningLotto, [{
-    key: "winningNumbers",
-    get: function get() {
-      return _classPrivateFieldGet(this, _winningNumbers);
-    }
-  }, {
     key: "bonusNumber",
     get: function get() {
       return _classPrivateFieldGet(this, _bonusNumber);
@@ -562,21 +558,20 @@ var WinningLotto = /*#__PURE__*/function () {
     key: "generate",
     value: function generate(winningNumbers, bonusNumber) {
       try {
-        (0,_utils_Lotto_validator__WEBPACK_IMPORTED_MODULE_0__.checkValidWinningNumberInput)(_toConsumableArray(new Set(winningNumbers.concat(bonusNumber))));
-
-        _classPrivateFieldSet(this, _winningNumbers, winningNumbers);
+        (0,_utils_Lotto_validator__WEBPACK_IMPORTED_MODULE_0__.checkValidWinningNumberInput)(winningNumbers, bonusNumber);
+        this._lottoNumbers = _toConsumableArray(winningNumbers);
 
         _classPrivateFieldSet(this, _bonusNumber, bonusNumber);
 
         return this;
       } catch (error) {
-        return 'WRONG_WINNING_LOTTO';
+        throw new Error(error);
       }
     }
   }]);
 
   return WinningLotto;
-}();
+}(_Lotto__WEBPACK_IMPORTED_MODULE_1__["default"]);
 
 
 
@@ -659,9 +654,9 @@ var WinningLottoCounter = /*#__PURE__*/function () {
       value: void 0
     });
 
-    _classPrivateFieldSet(this, _winningCounts, _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.winningCountsInit));
+    _classPrivateFieldSet(this, _winningCounts, _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.INITIAL_WINNING_COUNTS));
 
-    _classPrivateFieldSet(this, _winningLotto, _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.winningLottoInit));
+    _classPrivateFieldSet(this, _winningLotto, _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.INITIAL_WINNING_LOTTO));
   }
 
   _createClass(WinningLottoCounter, [{
@@ -672,22 +667,22 @@ var WinningLottoCounter = /*#__PURE__*/function () {
   }, {
     key: "setWinningLotto",
     value: function setWinningLotto(winningLotto) {
-      _classPrivateFieldGet(this, _winningLotto).winningNumbers = _toConsumableArray(winningLotto.winningNumbers);
+      _classPrivateFieldGet(this, _winningLotto).lottoNumbers = _toConsumableArray(winningLotto.lottoNumbers);
       _classPrivateFieldGet(this, _winningLotto).bonusNumber = winningLotto.bonusNumber;
     }
   }, {
     key: "calculateWinningCounts",
-    value: function calculateWinningCounts(boutghtLottos) {
+    value: function calculateWinningCounts(boughtLottos) {
       var _this = this;
 
-      var tempWinningCounts = _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.winningCountsInit);
+      var tempWinningCounts = _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.INITIAL_WINNING_COUNTS);
 
-      boutghtLottos.forEach(function (lotto) {
+      boughtLottos.forEach(function (lotto) {
         var hitCount = _classPrivateFieldGet(_this, _winningLotto).winningNumbers.filter(function (num) {
-          return lotto.has(num);
+          return lotto.includes(num);
         }).length;
 
-        var isBonusHit = lotto.has(_classPrivateFieldGet(_this, _winningLotto).bonusNumber);
+        var isBonusHit = lotto.includes(_classPrivateFieldGet(_this, _winningLotto).bonusNumber);
         var rank = 7 - hitCount;
         rank = hitCount === 5 && isBonusHit || hitCount === 6 ? rank : rank + 1;
 
@@ -706,16 +701,16 @@ var WinningLottoCounter = /*#__PURE__*/function () {
             rank = _ref2[0],
             count = _ref2[1];
 
-        return total += _constants_setting__WEBPACK_IMPORTED_MODULE_0__.prizeMoney[rank] * count;
+        return total += _constants_setting__WEBPACK_IMPORTED_MODULE_0__.PRIZE_MONEY[rank] * count;
       }, 0);
       return earnedMoney ? Math.round((earnedMoney - chargedMoney) / chargedMoney * 100) : -100;
     }
   }, {
     key: "reset",
     value: function reset() {
-      _classPrivateFieldSet(this, _winningCounts, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.winningCountsInit);
+      _classPrivateFieldSet(this, _winningCounts, _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.INITIAL_WINNING_COUNTS));
 
-      _classPrivateFieldSet(this, _winningLotto, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.winningLottoInit);
+      _classPrivateFieldSet(this, _winningLotto, _objectSpread({}, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.INITIAL_WINNING_LOTTO));
     }
   }]);
 
@@ -781,6 +776,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _validator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validator */ "./src/js/utils/validator.js");
 /* harmony import */ var _constants_setting__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../constants/setting */ "./src/js/constants/setting.js");
 /* harmony import */ var _constants_string__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../constants/string */ "./src/js/constants/string.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 
 
 
@@ -814,13 +821,17 @@ var isValidRangeLottoNumber = function isValidRangeLottoNumber(number) {
   return (0,_validator__WEBPACK_IMPORTED_MODULE_0__.isValidRangeNumber)(_constants_setting__WEBPACK_IMPORTED_MODULE_1__.LOTTO_SETTING.MIN_RANDOM_NUMBER, _constants_setting__WEBPACK_IMPORTED_MODULE_1__.LOTTO_SETTING.MAX_RANDOM_NUMBER, number);
 };
 
-var checkValidWinningNumberInput = function checkValidWinningNumberInput(numbers) {
+var checkValidWinningNumberInput = function checkValidWinningNumberInput(winningNumbers, bonusNumber) {
+  var numbers = _toConsumableArray(winningNumbers.concat(bonusNumber).filter(function (number) {
+    return number;
+  }));
+
   if (numbers.length !== 7) {
-    throw new Error('빈 입력이 있습니다.');
+    throw new Error(_constants_string__WEBPACK_IMPORTED_MODULE_2__.ERROR_MESSAGE.HAS_EMPTY_INPUT);
   }
 
   if (new Set(numbers).size !== 7) {
-    throw new Error('번호가 중복됐습니다.');
+    throw new Error(_constants_string__WEBPACK_IMPORTED_MODULE_2__.ERROR_MESSAGE.HAS_DUPLICATED_NUMBER);
   }
 
   var filters = [_validator__WEBPACK_IMPORTED_MODULE_0__.isPositiveInteger, isValidRangeLottoNumber];
@@ -831,7 +842,7 @@ var checkValidWinningNumberInput = function checkValidWinningNumberInput(numbers
   });
 
   if (!isValidWinningNumber) {
-    throw new Error('올바른 로또 번호 입력이 아닙니다.');
+    throw new Error(_constants_string__WEBPACK_IMPORTED_MODULE_2__.ERROR_MESSAGE.WRONG_LOTTO_NUMBER);
   }
 };
 
@@ -896,6 +907,55 @@ var hasClassName = function hasClassName(element, classes) {
     return element.classList.contains(className);
   });
 };
+
+/***/ }),
+
+/***/ "./src/js/views/InputView.js":
+/*!***********************************!*\
+  !*** ./src/js/views/InputView.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ InputView)
+/* harmony export */ });
+/* harmony import */ var _constants_setting__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants/setting */ "./src/js/constants/setting.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+
+
+var InputView = /*#__PURE__*/function () {
+  function InputView() {
+    _classCallCheck(this, InputView);
+  }
+
+  _createClass(InputView, [{
+    key: "preventNonDigitInput",
+    value: function preventNonDigitInput(event) {
+      var inputKeyCode = event.keyCode;
+      var isValidKeyCode = [_constants_setting__WEBPACK_IMPORTED_MODULE_0__.KEYCODE.BACKSPACE, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.KEYCODE.TAB, _constants_setting__WEBPACK_IMPORTED_MODULE_0__.KEYCODE.ENTER].some(function (keyCode) {
+        return inputKeyCode === keyCode;
+      });
+
+      if (isValidKeyCode) {
+        return;
+      }
+
+      if (inputKeyCode < _constants_setting__WEBPACK_IMPORTED_MODULE_0__.KEYCODE.ZERO || inputKeyCode > _constants_setting__WEBPACK_IMPORTED_MODULE_0__.KEYCODE.NINE) {
+        event.preventDefault();
+      }
+    }
+  }]);
+
+  return InputView;
+}();
+
+
 
 /***/ }),
 
@@ -1009,11 +1069,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _utils_element_manager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/element-manager */ "./src/js/utils/element-manager.js");
 /* harmony import */ var _constants_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants/selector */ "./src/js/constants/selector.js");
+/* harmony import */ var _constants_setting__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../constants/setting */ "./src/js/constants/setting.js");
+/* harmony import */ var _InputView__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./InputView */ "./src/js/views/InputView.js");
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 
@@ -1032,20 +1110,32 @@ function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.
 
 
 
+
+
 var _moneyInputSection = /*#__PURE__*/new WeakMap();
 
-var MoneyInputView = /*#__PURE__*/function () {
+var MoneyInputView = /*#__PURE__*/function (_InputView) {
+  _inherits(MoneyInputView, _InputView);
+
+  var _super = _createSuper(MoneyInputView);
+
   function MoneyInputView($element) {
+    var _this;
+
     _classCallCheck(this, MoneyInputView);
 
-    _classPrivateFieldInitSpec(this, _moneyInputSection, {
+    _this = _super.call(this);
+
+    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _moneyInputSection, {
       writable: true,
       value: void 0
     });
 
-    _classPrivateFieldSet(this, _moneyInputSection, $element);
+    _classPrivateFieldSet(_assertThisInitialized(_this), _moneyInputSection, $element);
 
-    this.moneyInputHandler();
+    _this.moneyInputHandler();
+
+    return _this;
   }
 
   _createClass(MoneyInputView, [{
@@ -1066,19 +1156,6 @@ var MoneyInputView = /*#__PURE__*/function () {
       });
     }
   }, {
-    key: "preventNonDigitInput",
-    value: function preventNonDigitInput(event) {
-      var inputKeyCode = event.keyCode;
-
-      if (event.key === 'Backspace' || event.key === 'Tab') {
-        return;
-      }
-
-      if (inputKeyCode < 48 || inputKeyCode > 57) {
-        event.preventDefault();
-      }
-    }
-  }, {
     key: "disableNewMoneySubmit",
     value: function disableNewMoneySubmit() {
       (0,_utils_element_manager__WEBPACK_IMPORTED_MODULE_0__.$)(_classPrivateFieldGet(this, _moneyInputSection), "#".concat(_constants_selector__WEBPACK_IMPORTED_MODULE_1__.SELECTOR.ID.LOTTO_MONEY_INPUT)).disabled = true;
@@ -1094,7 +1171,7 @@ var MoneyInputView = /*#__PURE__*/function () {
   }]);
 
   return MoneyInputView;
-}();
+}(_InputView__WEBPACK_IMPORTED_MODULE_3__["default"]);
 
 
 
@@ -1206,11 +1283,28 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_selector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants/selector */ "./src/js/constants/selector.js");
 /* harmony import */ var _utils_element_manager__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/element-manager */ "./src/js/utils/element-manager.js");
 /* harmony import */ var _utils_Lotto_template_manager__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/Lotto/template-manager */ "./src/js/utils/Lotto/template-manager.js");
+/* harmony import */ var _InputView__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./InputView */ "./src/js/views/InputView.js");
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 
@@ -1230,39 +1324,37 @@ function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.
 
 
 
+
 var _winningNumberSection = /*#__PURE__*/new WeakMap();
 
-var WinningNumberView = /*#__PURE__*/function () {
+var WinningNumberView = /*#__PURE__*/function (_InputView) {
+  _inherits(WinningNumberView, _InputView);
+
+  var _super = _createSuper(WinningNumberView);
+
   function WinningNumberView(element) {
+    var _this;
+
     _classCallCheck(this, WinningNumberView);
 
-    _classPrivateFieldInitSpec(this, _winningNumberSection, {
+    _this = _super.call(this);
+
+    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _winningNumberSection, {
       writable: true,
       value: void 0
     });
 
-    _classPrivateFieldSet(this, _winningNumberSection, element);
+    _classPrivateFieldSet(_assertThisInitialized(_this), _winningNumberSection, element);
 
-    this.winningNumberInputHandler();
+    _this.bindWinningNumberKeydown();
+
+    return _this;
   }
 
   _createClass(WinningNumberView, [{
-    key: "winningNumberInputHandler",
-    value: function winningNumberInputHandler() {
+    key: "bindWinningNumberKeydown",
+    value: function bindWinningNumberKeydown() {
       _classPrivateFieldGet(this, _winningNumberSection).addEventListener('keydown', this.preventNonDigitInput.bind(this));
-    }
-  }, {
-    key: "preventNonDigitInput",
-    value: function preventNonDigitInput(event) {
-      var inputKeyCode = event.keyCode;
-
-      if (event.key === 'Backspace' || event.key === 'Tab') {
-        return;
-      }
-
-      if (inputKeyCode < 48 || inputKeyCode > 57) {
-        event.preventDefault();
-      }
     }
   }, {
     key: "renderWinningNumbersInput",
@@ -1276,16 +1368,16 @@ var WinningNumberView = /*#__PURE__*/function () {
   }, {
     key: "bindWinningNumberInputSubmit",
     value: function bindWinningNumberInputSubmit(handler) {
-      var _this = this;
+      var _this2 = this;
 
       _classPrivateFieldGet(this, _winningNumberSection).addEventListener('click', function (event) {
         event.preventDefault();
 
         if (event.target.id === _constants_selector__WEBPACK_IMPORTED_MODULE_0__.SELECTOR.ID.SHOW_RESULT_BUTTON) {
-          var winningNumbers = Array.from((0,_utils_element_manager__WEBPACK_IMPORTED_MODULE_1__.$$)(_classPrivateFieldGet(_this, _winningNumberSection), ".".concat(_constants_selector__WEBPACK_IMPORTED_MODULE_0__.SELECTOR.CLASS.WINNING_NUMBER_INPUT))).map(function (element) {
+          var winningNumbers = Array.from((0,_utils_element_manager__WEBPACK_IMPORTED_MODULE_1__.$$)(_classPrivateFieldGet(_this2, _winningNumberSection), ".".concat(_constants_selector__WEBPACK_IMPORTED_MODULE_0__.SELECTOR.CLASS.WINNING_NUMBER_INPUT))).map(function (element) {
             return Number(element.value);
           });
-          var bonusNumber = Number((0,_utils_element_manager__WEBPACK_IMPORTED_MODULE_1__.$)(_classPrivateFieldGet(_this, _winningNumberSection), ".".concat(_constants_selector__WEBPACK_IMPORTED_MODULE_0__.SELECTOR.CLASS.BONUS_NUMBER_INPUT)).value);
+          var bonusNumber = Number((0,_utils_element_manager__WEBPACK_IMPORTED_MODULE_1__.$)(_classPrivateFieldGet(_this2, _winningNumberSection), ".".concat(_constants_selector__WEBPACK_IMPORTED_MODULE_0__.SELECTOR.CLASS.BONUS_NUMBER_INPUT)).value);
           handler({
             winningNumbers: winningNumbers,
             bonusNumber: bonusNumber
@@ -1301,7 +1393,7 @@ var WinningNumberView = /*#__PURE__*/function () {
   }]);
 
   return WinningNumberView;
-}();
+}(_InputView__WEBPACK_IMPORTED_MODULE_3__["default"]);
 
 
 
@@ -1326,7 +1418,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ":root {\n  font-size: 15px;\n}\n\nbody {\n  background-color: #f9f9f9;\n  font-family: \"NanumBarunGothic\", sans-serif;\n  overflow: hidden;\n}\n\n#app {\n  width: 27.6rem;\n  margin: 5.7rem auto;\n  padding: 1.05rem;\n  background-color: white;\n  border: 1px solid rgba(0, 0, 0, 0.12);\n}\n#app header {\n  text-align: center;\n}\n#app input[type=number] {\n  border: 1px solid #b4b4b4;\n  border-radius: 5px;\n  box-shadow: none;\n  font-size: 1.1rem;\n  -moz-appearance: textfield;\n}\n#app input[type=number]::-webkit-outer-spin-button, #app input[type=number]::-webkit-inner-spin-button {\n  -webkit-appearance: none;\n  margin: 0;\n}\n#app .btn {\n  background-color: #00bcd4;\n  color: white;\n  border: none;\n  padding: 0.5rem;\n  border-radius: 4px;\n  font-size: 1rem;\n  cursor: pointer;\n}\n#app .btn:hover {\n  filter: brightness(1.1);\n}\n#app .btn:active {\n  background-color: #5cccee;\n}\n#app .btn:disabled {\n  background-color: #b4b4b4;\n}\n#app .btn:disabled:hover {\n  filter: none;\n  cursor: unset;\n}\n\n.lotto-money-section {\n  margin: 1rem 0;\n}\n\n.lotto-money-input-container {\n  display: grid;\n  grid-template-columns: 80% 15%;\n  justify-content: space-between;\n  margin-top: 0.8rem;\n}\n\n.show {\n  display: block !important;\n}\n\n.lotto-list-container {\n  display: grid;\n  grid-template-columns: 85% 10%;\n  justify-content: space-between;\n}\n\n.lotto-title {\n  display: flex;\n  justify-content: space-between;\n  margin: 0.6rem 0;\n}\n\n.lotto-list-container > div:last-child {\n  padding: 0.5rem 0;\n}\n\n#lotto-number-toggle {\n  position: relative;\n  width: 100%;\n  height: 1.5rem;\n  cursor: pointer;\n}\n#lotto-number-toggle::before {\n  position: absolute;\n  top: 0.15rem;\n  display: block;\n  content: \"\";\n  width: 100%;\n  height: 1.2rem;\n  border-radius: 5px;\n  background-color: #ededed;\n  transition: background-color ease 0.3s;\n}\n#lotto-number-toggle.open::before {\n  background-color: #80deea;\n}\n#lotto-number-toggle::after {\n  position: absolute;\n  top: 0px;\n  display: block;\n  content: \"\";\n  border-radius: 50%;\n  background-color: #ededed;\n  box-shadow: 0 0 5px rgba(0, 0, 0, 0.12);\n  width: 1.5rem;\n  height: 100%;\n  transition: transform ease 0.3s, background-color ease 0.3s;\n}\n#lotto-number-toggle.open::after {\n  background-color: #00bcd4;\n  transform: translateX(100%);\n}\n\n.lotto-item-container {\n  display: grid;\n  grid-template-columns: repeat(8, 40px);\n  grid-auto-rows: max-content;\n  width: fit-content;\n  padding-right: 10px;\n  max-height: 400px;\n  overflow-y: auto;\n  overflow-x: hidden;\n}\n.lotto-item-container > .item {\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  font-size: 2rem;\n  grid-column: 1 span;\n}\n.lotto-item-container > .item .item-number {\n  display: none;\n  font-size: 1rem;\n}\n.lotto-item-container.open > .item {\n  grid-column: 8 span;\n}\n.lotto-item-container.open > .item .item-number {\n  display: block;\n}\n.lotto-item-container::-webkit-scrollbar {\n  width: 5px;\n}\n.lotto-item-container::-webkit-scrollbar-thumb {\n  background-color: #00bcd4;\n  border-radius: 3px;\n}\n.lotto-item-container::-webkit-scrollbar-track {\n  background-color: white;\n}\n\n.lotto-list-section,\n.winning-number-section {\n  margin-top: 2rem;\n}\n\n/*\nWINNING NUMBERS\n*/\n.winning-number-container {\n  display: flex;\n  justify-content: space-between;\n  margin-top: 0.5rem;\n}\n\n.winning-number-inputs-wrapper {\n  display: flex;\n  justify-content: space-between;\n  gap: 0.5rem;\n  margin-top: 0.6rem;\n}\n\n.winning-number-input {\n  width: 2.2rem;\n  height: 2.2rem;\n  text-align: center;\n}\n\n.bonus-number-input {\n  width: 2.2rem;\n  height: 2.2rem;\n  text-align: center;\n}\n\n.bonus-number-wrapper {\n  text-align: right;\n}\n\n.bonus-number-input-wrapper {\n  margin-top: 0.6rem;\n}\n\n#show-result-button {\n  margin-top: 1.2rem;\n  width: 100%;\n}\n\n/*\nWINNING MODAL\n*/\n.modal {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  display: none;\n  background-color: rgba(0, 0, 0, 0.4);\n}\n\n.modal_body {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  width: 330px;\n  height: 450px;\n  padding: 20px;\n  text-align: center;\n  background-color: white;\n  border-radius: 4px;\n  box-shadow: 0 2px 3px 0 rgba(34, 36, 38, 0.15);\n  transform: translateX(-50%) translateY(-50%);\n}\n\n.winning-result-title {\n  font-size: 21px;\n}\n\n.winning-result-container {\n  display: grid;\n  grid-template-rows: 20% 50% 10% 20%;\n}\n\n.winning-result {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n}\n\n.winning-result-table-title {\n  font-size: 15px;\n  font-weight: bold;\n}\n\n.winning-result > section {\n  display: grid;\n  border-bottom: 0.5px solid lightgray;\n}\n\n.winning-result > section > * {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-top: 0.5px solid lightgray;\n  padding: 8px 0;\n}\n\n.profit-rate-wrapper {\n  font-weight: bold;\n  font-size: 16px;\n}\n\n.profit-rate-wrapper,\n.reset-button-wrapper {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n.reset-button {\n  padding: 10px 30px !important;\n}\n\n.close-modal-button {\n  position: absolute;\n  background: transparent;\n  border: none;\n  color: #b1b0b0;\n  right: 12px;\n  top: 15px;\n  cursor: pointer;\n}", "",{"version":3,"sources":["webpack://./src/css/index.scss"],"names":[],"mappings":"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","sourcesContent":["$border-color: #b4b4b4;\r\n$border-radius: 5px;\r\n$primary-color: #00bcd4;\r\n\r\n:root {\r\n  font-size: 15px;\r\n}\r\n\r\nbody {\r\n  background-color: #f9f9f9;\r\n  font-family: 'NanumBarunGothic', sans-serif;\r\n  overflow: hidden;\r\n}\r\n\r\n#app {\r\n  width: 27.6rem;\r\n  margin: 5.7rem auto;\r\n  padding: 1.05rem;\r\n  background-color: white;\r\n  border: 1px solid rgba(0, 0, 0, 0.12);\r\n\r\n  header {\r\n    text-align: center;\r\n  }\r\n\r\n  input[type='number'] {\r\n    border: 1px solid $border-color;\r\n    border-radius: $border-radius;\r\n    box-shadow: none;\r\n    font-size: 1.1rem;\r\n    -moz-appearance: textfield;\r\n\r\n    &::-webkit-outer-spin-button,\r\n    &::-webkit-inner-spin-button {\r\n      -webkit-appearance: none;\r\n      margin: 0;\r\n    }\r\n  }\r\n\r\n  .btn {\r\n    background-color: $primary-color;\r\n    color: white;\r\n    border: none;\r\n    padding: 0.5rem;\r\n    border-radius: 4px;\r\n    font-size: 1rem;\r\n    cursor: pointer;\r\n\r\n    &:hover {\r\n      filter: brightness(1.1);\r\n    }\r\n    &:active {\r\n      background-color: #5cccee;\r\n    }\r\n    &:disabled {\r\n      background-color: #b4b4b4;\r\n    }\r\n    &:disabled:hover {\r\n      filter: none;\r\n      cursor: unset;\r\n    }\r\n  }\r\n}\r\n\r\n.lotto-money-section {\r\n  margin: 1rem 0;\r\n}\r\n\r\n.lotto-money-input-container {\r\n  display: grid;\r\n  grid-template-columns: 80% 15%;\r\n  justify-content: space-between;\r\n  margin-top: 0.8rem;\r\n}\r\n\r\n.show {\r\n  display: block !important;\r\n}\r\n\r\n.lotto-list-container {\r\n  display: grid;\r\n  grid-template-columns: 85% 10%;\r\n  justify-content: space-between;\r\n}\r\n\r\n.lotto-title {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  margin: 0.6rem 0;\r\n}\r\n\r\n.lotto-list-container {\r\n  > div:last-child {\r\n    padding: 0.5rem 0;\r\n  }\r\n}\r\n\r\n#lotto-number-toggle {\r\n  position: relative;\r\n  width: 100%;\r\n  height: 1.5rem;\r\n  cursor: pointer;\r\n\r\n  &::before {\r\n    position: absolute;\r\n    top: 0.15rem;\r\n    display: block;\r\n    content: '';\r\n    width: 100%;\r\n    height: 1.2rem;\r\n    border-radius: $border-radius;\r\n    background-color: #ededed;\r\n    transition: background-color ease 0.3s;\r\n  }\r\n\r\n  &.open::before {\r\n    background-color: #80deea;\r\n  }\r\n\r\n  &::after {\r\n    position: absolute;\r\n    top: 0px;\r\n    display: block;\r\n    content: '';\r\n    border-radius: 50%;\r\n    background-color: #ededed;\r\n    box-shadow: 0 0 5px rgba(0, 0, 0, 0.12);\r\n    width: 1.5rem;\r\n    height: 100%;\r\n    transition: transform ease 0.3s, background-color ease 0.3s;\r\n  }\r\n\r\n  &.open::after {\r\n    background-color: $primary-color;\r\n    transform: translateX(100%);\r\n  }\r\n}\r\n\r\n.lotto-item-container {\r\n  display: grid;\r\n  grid-template-columns: repeat(8, 40px);\r\n  grid-auto-rows: max-content;\r\n  width: fit-content;\r\n  padding-right: 10px;\r\n  max-height: 400px;\r\n  overflow-y: auto;\r\n  overflow-x: hidden;\r\n\r\n  > .item {\r\n    display: flex;\r\n    align-items: center;\r\n    gap: 0.5rem;\r\n    font-size: 2rem;\r\n    grid-column: 1 span;\r\n\r\n    .item-number {\r\n      display: none;\r\n      font-size: 1rem;\r\n    }\r\n  }\r\n\r\n  &.open {\r\n    > .item {\r\n      grid-column: 8 span;\r\n\r\n      .item-number {\r\n        display: block;\r\n      }\r\n    }\r\n  }\r\n\r\n  &::-webkit-scrollbar {\r\n    width: 5px;\r\n  }\r\n  &::-webkit-scrollbar-thumb {\r\n    background-color: $primary-color;\r\n    border-radius: 3px;\r\n  }\r\n  &::-webkit-scrollbar-track {\r\n    background-color: white;\r\n  }\r\n}\r\n\r\n.lotto-list-section,\r\n.winning-number-section {\r\n  margin-top: 2rem;\r\n}\r\n\r\n/*\r\nWINNING NUMBERS\r\n*/\r\n\r\n.winning-number-container {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  margin-top: 0.5rem;\r\n}\r\n\r\n.winning-number-inputs-wrapper {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  gap: 0.5rem;\r\n  margin-top: 0.6rem;\r\n}\r\n\r\n.winning-number-input {\r\n  width: 2.2rem;\r\n  height: 2.2rem;\r\n  text-align: center;\r\n}\r\n\r\n.bonus-number-input {\r\n  width: 2.2rem;\r\n  height: 2.2rem;\r\n  text-align: center;\r\n}\r\n\r\n.bonus-number-wrapper {\r\n  text-align: right;\r\n}\r\n\r\n.bonus-number-input-wrapper {\r\n  margin-top: 0.6rem;\r\n}\r\n\r\n#show-result-button {\r\n  margin-top: 1.2rem;\r\n  width: 100%;\r\n}\r\n\r\n/*\r\nWINNING MODAL\r\n*/\r\n.modal {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 100%;\r\n  display: none;\r\n  background-color: rgba(0, 0, 0, 0.4);\r\n}\r\n.modal_body {\r\n  position: absolute;\r\n  top: 50%;\r\n  left: 50%;\r\n  width: 330px;\r\n  height: 450px;\r\n  padding: 20px;\r\n  text-align: center;\r\n  background-color: rgb(255, 255, 255);\r\n  border-radius: 4px;\r\n  box-shadow: 0 2px 3px 0 rgba(34, 36, 38, 0.15);\r\n  transform: translateX(-50%) translateY(-50%);\r\n}\r\n\r\n.winning-result-title {\r\n  font-size: 21px;\r\n}\r\n\r\n.winning-result-container {\r\n  display: grid;\r\n  grid-template-rows: 20% 50% 10% 20%;\r\n}\r\n\r\n.winning-result {\r\n  display: grid;\r\n  grid-template-columns: repeat(3, 1fr);\r\n}\r\n\r\n.winning-result-table-title {\r\n  font-size: 15px;\r\n  font-weight: bold;\r\n}\r\n\r\n.winning-result > section {\r\n  display: grid;\r\n  border-bottom: 0.5px solid lightgray;\r\n}\r\n.winning-result > section > * {\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  border-top: 0.5px solid lightgray;\r\n  padding: 8px 0;\r\n}\r\n\r\n.profit-rate-wrapper {\r\n  font-weight: bold;\r\n  font-size: 16px;\r\n}\r\n.profit-rate-wrapper,\r\n.reset-button-wrapper {\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n}\r\n\r\n.reset-button {\r\n  padding: 10px 30px !important;\r\n}\r\n\r\n.close-modal-button {\r\n  position: absolute;\r\n  background: transparent;\r\n  border: none;\r\n  color: rgb(177, 176, 176);\r\n  right: 12px;\r\n  top: 15px;\r\n  cursor: pointer;\r\n}\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\n  font-size: 15px;\n}\n\nbody {\n  background-color: #f9f9f9;\n  font-family: \"NanumBarunGothic\", sans-serif;\n  overflow: hidden;\n}\n\n#app {\n  width: 450px;\n  margin: 5.7rem auto;\n  padding: 1.05rem;\n  background-color: white;\n  border: 1px solid rgba(0, 0, 0, 0.12);\n}\n#app header {\n  text-align: center;\n}\n#app input[type=number] {\n  border: 1px solid #b4b4b4;\n  border-radius: 5px;\n  box-shadow: none;\n  font-size: 1.1rem;\n  -moz-appearance: textfield;\n}\n#app input[type=number]::-webkit-outer-spin-button, #app input[type=number]::-webkit-inner-spin-button {\n  -webkit-appearance: none;\n  margin: 0;\n}\n#app .btn {\n  background-color: #00bcd4;\n  color: white;\n  border: none;\n  padding: 0.5rem;\n  border-radius: 4px;\n  font-size: 1rem;\n  cursor: pointer;\n}\n#app .btn:hover {\n  filter: brightness(1.1);\n}\n#app .btn:active {\n  background-color: #5cccee;\n}\n#app .btn:disabled {\n  background-color: #b4b4b4;\n}\n#app .btn:disabled:hover {\n  filter: none;\n  cursor: unset;\n}\n#app .show {\n  display: block;\n}\n#app .reset-button {\n  padding: 10px 30px;\n}\n\n.lotto-money-section {\n  margin: 1rem 0;\n}\n\n.lotto-money-input-container {\n  display: grid;\n  grid-template-columns: 80% 15%;\n  justify-content: space-between;\n  margin-top: 0.8rem;\n}\n\n.lotto-list-container {\n  display: grid;\n  grid-template-columns: 85% 10%;\n  justify-content: space-between;\n}\n\n.lotto-title {\n  display: flex;\n  justify-content: space-between;\n  margin: 0.6rem 0;\n}\n\n.lotto-list-container > div:last-child {\n  padding: 0.5rem 0;\n}\n\n#lotto-number-toggle {\n  position: relative;\n  width: 100%;\n  height: 1.5rem;\n  cursor: pointer;\n}\n#lotto-number-toggle::before {\n  position: absolute;\n  top: 0.15rem;\n  display: block;\n  content: \"\";\n  width: 100%;\n  height: 1.2rem;\n  border-radius: 5px;\n  background-color: #ededed;\n  transition: background-color ease 0.3s;\n}\n#lotto-number-toggle.open::before {\n  background-color: #80deea;\n}\n#lotto-number-toggle::after {\n  position: absolute;\n  top: 0px;\n  display: block;\n  content: \"\";\n  border-radius: 50%;\n  background-color: #ededed;\n  box-shadow: 0 0 5px rgba(0, 0, 0, 0.12);\n  width: 1.5rem;\n  height: 100%;\n  transition: transform ease 0.3s, background-color ease 0.3s;\n}\n#lotto-number-toggle.open::after {\n  background-color: #00bcd4;\n  transform: translateX(100%);\n}\n\n.lotto-item-container {\n  display: grid;\n  grid-template-columns: repeat(8, 40px);\n  grid-auto-rows: max-content;\n  width: fit-content;\n  padding-right: 10px;\n  max-height: 400px;\n  overflow-y: auto;\n  overflow-x: hidden;\n}\n.lotto-item-container > .item {\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  font-size: 2rem;\n  grid-column: 1 span;\n}\n.lotto-item-container > .item .item-number {\n  display: none;\n  font-size: 1rem;\n}\n.lotto-item-container.open > .item {\n  grid-column: 8 span;\n}\n.lotto-item-container.open > .item .item-number {\n  display: block;\n}\n.lotto-item-container::-webkit-scrollbar {\n  width: 5px;\n}\n.lotto-item-container::-webkit-scrollbar-thumb {\n  background-color: #00bcd4;\n  border-radius: 3px;\n}\n.lotto-item-container::-webkit-scrollbar-track {\n  background-color: white;\n}\n\n.lotto-list-section,\n.winning-number-section {\n  margin-top: 2rem;\n}\n\n/*\nWINNING NUMBERS\n*/\n.winning-number-container {\n  display: flex;\n  justify-content: space-between;\n  margin-top: 0.5rem;\n}\n\n.winning-number-inputs-wrapper {\n  display: flex;\n  justify-content: space-between;\n  gap: 0.5rem;\n  margin-top: 0.6rem;\n}\n\n.winning-number-input {\n  width: 33px;\n  height: 33px;\n  text-align: center;\n}\n\n.bonus-number-input {\n  width: 33px;\n  height: 33px;\n  text-align: center;\n}\n\n.bonus-number-wrapper {\n  text-align: right;\n}\n\n.bonus-number-input-wrapper {\n  margin-top: 0.6rem;\n}\n\n#show-result-button {\n  margin-top: 1.2rem;\n  width: 100%;\n}\n\n/*\nWINNING MODAL\n*/\n.modal {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  display: none;\n  background-color: rgba(0, 0, 0, 0.4);\n}\n\n.modal_body {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  width: 330px;\n  height: 450px;\n  padding: 20px;\n  text-align: center;\n  background-color: white;\n  border-radius: 4px;\n  box-shadow: 0 2px 3px 0 rgba(34, 36, 38, 0.15);\n  transform: translateX(-50%) translateY(-50%);\n}\n\n.winning-result-title {\n  font-size: 21px;\n}\n\n.winning-result-container {\n  display: grid;\n  grid-template-rows: 20% 50% 10% 20%;\n}\n\n.winning-result {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n}\n\n.winning-result-table-title {\n  font-size: 15px;\n  font-weight: bold;\n}\n\n.winning-result > section {\n  display: grid;\n  border-bottom: 0.5px solid lightgray;\n}\n\n.winning-result > section > * {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-top: 0.5px solid lightgray;\n  padding: 8px 0;\n}\n\n.profit-rate-wrapper {\n  font-weight: bold;\n  font-size: 16px;\n}\n\n.profit-rate-wrapper,\n.reset-button-wrapper {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n.close-modal-button {\n  position: absolute;\n  background: transparent;\n  border: none;\n  color: #b1b0b0;\n  right: 12px;\n  top: 15px;\n  cursor: pointer;\n}", "",{"version":3,"sources":["webpack://./src/css/index.scss"],"names":[],"mappings":"AAIA;EACE,eAAA;AAHF;;AAMA;EACE,yBAAA;EACA,2CAAA;EACA,gBAAA;AAHF;;AAMA;EACE,YAAA;EACA,mBAAA;EACA,gBAAA;EACA,uBAAA;EACA,qCAAA;AAHF;AAKE;EACE,kBAAA;AAHJ;AAME;EACE,yBAAA;EACA,kBA1BY;EA2BZ,gBAAA;EACA,iBAAA;EACA,0BAAA;AAJJ;AAMI;EAEE,wBAAA;EACA,SAAA;AALN;AASE;EACE,yBAtCY;EAuCZ,YAAA;EACA,YAAA;EACA,eAAA;EACA,kBAAA;EACA,eAAA;EACA,eAAA;AAPJ;AASI;EACE,uBAAA;AAPN;AASI;EACE,yBAAA;AAPN;AASI;EACE,yBAAA;AAPN;AASI;EACE,YAAA;EACA,aAAA;AAPN;AAWE;EACE,cAAA;AATJ;AAYE;EACE,kBAAA;AAVJ;;AAcA;EACE,cAAA;AAXF;;AAcA;EACE,aAAA;EACA,8BAAA;EACA,8BAAA;EACA,kBAAA;AAXF;;AAcA;EACE,aAAA;EACA,8BAAA;EACA,8BAAA;AAXF;;AAcA;EACE,aAAA;EACA,8BAAA;EACA,gBAAA;AAXF;;AAeE;EACE,iBAAA;AAZJ;;AAgBA;EACE,kBAAA;EACA,WAAA;EACA,cAAA;EACA,eAAA;AAbF;AAeE;EACE,kBAAA;EACA,YAAA;EACA,cAAA;EACA,WAAA;EACA,WAAA;EACA,cAAA;EACA,kBAjHY;EAkHZ,yBAAA;EACA,sCAAA;AAbJ;AAgBE;EACE,yBAAA;AAdJ;AAiBE;EACE,kBAAA;EACA,QAAA;EACA,cAAA;EACA,WAAA;EACA,kBAAA;EACA,yBAAA;EACA,uCAAA;EACA,aAAA;EACA,YAAA;EACA,2DAAA;AAfJ;AAkBE;EACE,yBAvIY;EAwIZ,2BAAA;AAhBJ;;AAoBA;EACE,aAAA;EACA,sCAAA;EACA,2BAAA;EACA,kBAAA;EACA,mBAAA;EACA,iBAAA;EACA,gBAAA;EACA,kBAAA;AAjBF;AAmBE;EACE,aAAA;EACA,mBAAA;EACA,WAAA;EACA,eAAA;EACA,mBAAA;AAjBJ;AAmBI;EACE,aAAA;EACA,eAAA;AAjBN;AAsBI;EACE,mBAAA;AApBN;AAsBM;EACE,cAAA;AApBR;AAyBE;EACE,UAAA;AAvBJ;AAyBE;EACE,yBAjLY;EAkLZ,kBAAA;AAvBJ;AAyBE;EACE,uBAAA;AAvBJ;;AA2BA;;EAEE,gBAAA;AAxBF;;AA2BA;;CAAA;AAIA;EACE,aAAA;EACA,8BAAA;EACA,kBAAA;AAzBF;;AA4BA;EACE,aAAA;EACA,8BAAA;EACA,WAAA;EACA,kBAAA;AAzBF;;AA4BA;EACE,WAAA;EACA,YAAA;EACA,kBAAA;AAzBF;;AA4BA;EACE,WAAA;EACA,YAAA;EACA,kBAAA;AAzBF;;AA4BA;EACE,iBAAA;AAzBF;;AA4BA;EACE,kBAAA;AAzBF;;AA4BA;EACE,kBAAA;EACA,WAAA;AAzBF;;AA4BA;;CAAA;AAGA;EACE,kBAAA;EACA,MAAA;EACA,OAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,oCAAA;AAzBF;;AA2BA;EACE,kBAAA;EACA,QAAA;EACA,SAAA;EACA,YAAA;EACA,aAAA;EACA,aAAA;EACA,kBAAA;EACA,uBAAA;EACA,kBAAA;EACA,8CAAA;EACA,4CAAA;AAxBF;;AA2BA;EACE,eAAA;AAxBF;;AA2BA;EACE,aAAA;EACA,mCAAA;AAxBF;;AA2BA;EACE,aAAA;EACA,qCAAA;AAxBF;;AA2BA;EACE,eAAA;EACA,iBAAA;AAxBF;;AA2BA;EACE,aAAA;EACA,oCAAA;AAxBF;;AA0BA;EACE,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,iCAAA;EACA,cAAA;AAvBF;;AA0BA;EACE,iBAAA;EACA,eAAA;AAvBF;;AAyBA;;EAEE,aAAA;EACA,uBAAA;EACA,mBAAA;AAtBF;;AAyBA;EACE,kBAAA;EACA,uBAAA;EACA,YAAA;EACA,cAAA;EACA,WAAA;EACA,SAAA;EACA,eAAA;AAtBF","sourcesContent":["$border-color: #b4b4b4;\r\n$border-radius: 5px;\r\n$primary-color: #00bcd4;\r\n\r\n:root {\r\n  font-size: 15px;\r\n}\r\n\r\nbody {\r\n  background-color: #f9f9f9;\r\n  font-family: 'NanumBarunGothic', sans-serif;\r\n  overflow: hidden;\r\n}\r\n\r\n#app {\r\n  width: 450px;\r\n  margin: 5.7rem auto;\r\n  padding: 1.05rem;\r\n  background-color: white;\r\n  border: 1px solid rgba(0, 0, 0, 0.12);\r\n\r\n  header {\r\n    text-align: center;\r\n  }\r\n\r\n  input[type='number'] {\r\n    border: 1px solid $border-color;\r\n    border-radius: $border-radius;\r\n    box-shadow: none;\r\n    font-size: 1.1rem;\r\n    -moz-appearance: textfield;\r\n\r\n    &::-webkit-outer-spin-button,\r\n    &::-webkit-inner-spin-button {\r\n      -webkit-appearance: none;\r\n      margin: 0;\r\n    }\r\n  }\r\n\r\n  .btn {\r\n    background-color: $primary-color;\r\n    color: white;\r\n    border: none;\r\n    padding: 0.5rem;\r\n    border-radius: 4px;\r\n    font-size: 1rem;\r\n    cursor: pointer;\r\n\r\n    &:hover {\r\n      filter: brightness(1.1);\r\n    }\r\n    &:active {\r\n      background-color: #5cccee;\r\n    }\r\n    &:disabled {\r\n      background-color: #b4b4b4;\r\n    }\r\n    &:disabled:hover {\r\n      filter: none;\r\n      cursor: unset;\r\n    }\r\n  }\r\n\r\n  .show {\r\n    display: block;\r\n  }\r\n\r\n  .reset-button {\r\n    padding: 10px 30px;\r\n  }\r\n}\r\n\r\n.lotto-money-section {\r\n  margin: 1rem 0;\r\n}\r\n\r\n.lotto-money-input-container {\r\n  display: grid;\r\n  grid-template-columns: 80% 15%;\r\n  justify-content: space-between;\r\n  margin-top: 0.8rem;\r\n}\r\n\r\n.lotto-list-container {\r\n  display: grid;\r\n  grid-template-columns: 85% 10%;\r\n  justify-content: space-between;\r\n}\r\n\r\n.lotto-title {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  margin: 0.6rem 0;\r\n}\r\n\r\n.lotto-list-container {\r\n  > div:last-child {\r\n    padding: 0.5rem 0;\r\n  }\r\n}\r\n\r\n#lotto-number-toggle {\r\n  position: relative;\r\n  width: 100%;\r\n  height: 1.5rem;\r\n  cursor: pointer;\r\n\r\n  &::before {\r\n    position: absolute;\r\n    top: 0.15rem;\r\n    display: block;\r\n    content: '';\r\n    width: 100%;\r\n    height: 1.2rem;\r\n    border-radius: $border-radius;\r\n    background-color: #ededed;\r\n    transition: background-color ease 0.3s;\r\n  }\r\n\r\n  &.open::before {\r\n    background-color: #80deea;\r\n  }\r\n\r\n  &::after {\r\n    position: absolute;\r\n    top: 0px;\r\n    display: block;\r\n    content: '';\r\n    border-radius: 50%;\r\n    background-color: #ededed;\r\n    box-shadow: 0 0 5px rgba(0, 0, 0, 0.12);\r\n    width: 1.5rem;\r\n    height: 100%;\r\n    transition: transform ease 0.3s, background-color ease 0.3s;\r\n  }\r\n\r\n  &.open::after {\r\n    background-color: $primary-color;\r\n    transform: translateX(100%);\r\n  }\r\n}\r\n\r\n.lotto-item-container {\r\n  display: grid;\r\n  grid-template-columns: repeat(8, 40px);\r\n  grid-auto-rows: max-content;\r\n  width: fit-content;\r\n  padding-right: 10px;\r\n  max-height: 400px;\r\n  overflow-y: auto;\r\n  overflow-x: hidden;\r\n\r\n  > .item {\r\n    display: flex;\r\n    align-items: center;\r\n    gap: 0.5rem;\r\n    font-size: 2rem;\r\n    grid-column: 1 span;\r\n\r\n    .item-number {\r\n      display: none;\r\n      font-size: 1rem;\r\n    }\r\n  }\r\n\r\n  &.open {\r\n    > .item {\r\n      grid-column: 8 span;\r\n\r\n      .item-number {\r\n        display: block;\r\n      }\r\n    }\r\n  }\r\n\r\n  &::-webkit-scrollbar {\r\n    width: 5px;\r\n  }\r\n  &::-webkit-scrollbar-thumb {\r\n    background-color: $primary-color;\r\n    border-radius: 3px;\r\n  }\r\n  &::-webkit-scrollbar-track {\r\n    background-color: white;\r\n  }\r\n}\r\n\r\n.lotto-list-section,\r\n.winning-number-section {\r\n  margin-top: 2rem;\r\n}\r\n\r\n/*\r\nWINNING NUMBERS\r\n*/\r\n\r\n.winning-number-container {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  margin-top: 0.5rem;\r\n}\r\n\r\n.winning-number-inputs-wrapper {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  gap: 0.5rem;\r\n  margin-top: 0.6rem;\r\n}\r\n\r\n.winning-number-input {\r\n  width: 33px;\r\n  height: 33px;\r\n  text-align: center;\r\n}\r\n\r\n.bonus-number-input {\r\n  width: 33px;\r\n  height: 33px;\r\n  text-align: center;\r\n}\r\n\r\n.bonus-number-wrapper {\r\n  text-align: right;\r\n}\r\n\r\n.bonus-number-input-wrapper {\r\n  margin-top: 0.6rem;\r\n}\r\n\r\n#show-result-button {\r\n  margin-top: 1.2rem;\r\n  width: 100%;\r\n}\r\n\r\n/*\r\nWINNING MODAL\r\n*/\r\n.modal {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 100%;\r\n  display: none;\r\n  background-color: rgba(0, 0, 0, 0.4);\r\n}\r\n.modal_body {\r\n  position: absolute;\r\n  top: 50%;\r\n  left: 50%;\r\n  width: 330px;\r\n  height: 450px;\r\n  padding: 20px;\r\n  text-align: center;\r\n  background-color: rgb(255, 255, 255);\r\n  border-radius: 4px;\r\n  box-shadow: 0 2px 3px 0 rgba(34, 36, 38, 0.15);\r\n  transform: translateX(-50%) translateY(-50%);\r\n}\r\n\r\n.winning-result-title {\r\n  font-size: 21px;\r\n}\r\n\r\n.winning-result-container {\r\n  display: grid;\r\n  grid-template-rows: 20% 50% 10% 20%;\r\n}\r\n\r\n.winning-result {\r\n  display: grid;\r\n  grid-template-columns: repeat(3, 1fr);\r\n}\r\n\r\n.winning-result-table-title {\r\n  font-size: 15px;\r\n  font-weight: bold;\r\n}\r\n\r\n.winning-result > section {\r\n  display: grid;\r\n  border-bottom: 0.5px solid lightgray;\r\n}\r\n.winning-result > section > * {\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  border-top: 0.5px solid lightgray;\r\n  padding: 8px 0;\r\n}\r\n\r\n.profit-rate-wrapper {\r\n  font-weight: bold;\r\n  font-size: 16px;\r\n}\r\n.profit-rate-wrapper,\r\n.reset-button-wrapper {\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n}\r\n\r\n.close-modal-button {\r\n  position: absolute;\r\n  background: transparent;\r\n  border: none;\r\n  color: rgb(177, 176, 176);\r\n  right: 12px;\r\n  top: 15px;\r\n  cursor: pointer;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
